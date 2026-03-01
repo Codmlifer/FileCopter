@@ -42,6 +42,17 @@
             </div>
         </div>
     </div>
+    <div id="receiver-token">
+        <button onclick="copyToken()" class="copy-button">COPY</button>
+        <div class="token-w">
+            <textarea type="text" id="receiver-token-input" readonly></textarea>
+        </div>
+        <div class="controls-w">
+            <button onclick="copyToken()">COPY</button>
+            <button onclick="closeTokenWindow()">CLOSE</button>
+        </div>
+    </div>
+    <div class="overlay"></div>
     <script src="./socket.client.js"></script>
     <script src="./renderer.js"></script>
 </body>

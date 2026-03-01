@@ -67,6 +67,16 @@ function GetFiles(Files) {
   return files;
 }
 
+function generateToken(length) {
+  const bytes = crypto.randomBytes(Math.ceil(length * 3 / 4));
+  return bytes
+    .toString('base64')
+    .replace(/\+/g, 'A')
+    .replace(/\//g, 'B')
+    .replace(/=/g, '')
+    .slice(0, length);
+}
+
 //get file icon for extension
 function FileImage(extension) {
   const FImage = {
@@ -126,5 +136,6 @@ module.exports = {
   FileImage,
   generateKey,
   OnLineStates,
-  GetUUID
+  GetUUID,
+  generateToken
 }

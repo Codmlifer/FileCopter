@@ -3,12 +3,14 @@ const W = window;
 const CHUNK_SIZE = 128 * 1024;
 const ButtonSendFile = D.querySelector(".send-file");
 const ButtonGetFile = D.querySelector(".get-file");
+const Overlay = D.querySelector(".overlay");
+const ReceiverTokenText = D.querySelector("#receiver-token-input");
 const Menu = D.querySelector(".menu");
 
 let FoundServer = require("./udp-client");
 const { BrowserWindow } = require('@electron/remote');
 const fs = require('fs');
-const { OnLineStates, GetFiles } = require("./utils/utils");
+const { OnLineStates, GetFiles, generateToken } = require("./utils/utils");
 const JSHash = require("./utils/JSHash");
 
 let FilesList = [];
@@ -55,6 +57,18 @@ function createItemFile(fileName, theme, fileSize, filePath, UUID) {
   Menu.appendChild(ItemWidget);
 
   return ProgressFileWidget;
+}
+
+function copyToken() {
+  D.querySelector("#receiver-token-input").select();
+  navigator.clipboard.writeText(D.querySelector("#receiver-token-input").value);
+}
+
+function closeTokenWindow() {
+  D.querySelector("#receiver-token").style.display = "none";
+  Overlay.style.display = "none";
+
+  ReceiverTokenText.value = "";
 }
 
 async function checkInternet() {
@@ -116,9 +130,12 @@ FoundServer((StringForConnect) => {
         highWaterMark: CHUNK_SIZE
       });
 
-      socket.emit("file-start", {
-        fileName: el.fileName
-      });
+      if (el.isDir) {
+        // Send directory name to server for create on client
+        socket.emit("file-start", {
+          fileName: el.fileName
+        });
+      }
       
       stream.on("data", (chunk) => {
         socket.emit("file-chunk", { key: Key, chunk: chunk });
@@ -136,6 +153,14 @@ FoundServer((StringForConnect) => {
       //   console.log(status);
       // });
     });
+  }
+
+  ButtonGetFile.onclick = () => {
+    Overlay.style.display = "block";
+    D.querySelector("#receiver-token").style.display = "flex";
+    const ReceiverToken = generateToken(1000);
+
+    ReceiverTokenText.value = ReceiverToken + `--${Date.now()}`;
   }
 
   D.querySelector(".minimize-button").addEventListener("click", () => {
@@ -177,6 +202,8 @@ FoundServer((StringForConnect) => {
       document.querySelector("div.text").classList.add("hide");
 
       JSONFormat.files.forEach((el) => {
+        if (el.isDir) return; // Skip directories
+        
         const File = D.createElement("div");
         const FileIcon = D.createElement("img");
         const FileName = D.createElement("span");
@@ -198,83 +225,3 @@ FoundServer((StringForConnect) => {
     }
   };
 });
-
-// window.server.onServerFound((data) => {
-//   socket = io(data);
-
-//   socket.on('connect', () => socket.emit('ping'));
-//   socket.on('pong', (dataid) => {
-//     if (dataid === socket.id) {
-//       console.log('Pong ID matches socket ID');
-//     }
-//   });
-  
-//   let TempDir = null;
-//   ButtonSendFile.onclick = () => {
-//     FilesList.files.forEach((el) => {
-//       W.electronAPI.sendFiles({socketServer: socket}, {file: el.file, ext: el.extension, fileName: el.fileName, tempDir: TempDir});
-
-//       // socket.emit('upload', {file: el.file, ext: el.extension, fileName: el.fileName, tempDir: TempDir}, (status) => {
-//       //   if (typeof status === 'string') {
-//       //     TempDir = tempDir;
-//       //   }
-//       //   console.log(status);
-//       // });
-//     });
-//   }
-
-//   D.querySelector(".minimize-button").addEventListener("click", () => {
-//     W.electronAPI.minimizeWindow();
-//   });
-
-//   D.querySelector(".maximize-button").addEventListener("click", () => {
-//     W.electronAPI.maximizeWindow();
-//   });
-//   D.querySelector(".close-button").addEventListener("click", () => {
-//     W.electronAPI.closeWindow();
-//   });
-
-//   D.querySelector("div.file").ondragover = (e) => {
-//     e.preventDefault();
-//   };
-
-//   D.querySelector("div.file").addEventListener("wheel", (e) => {
-//     e.preventDefault();
-//     D.querySelector("div.file").scrollLeft += e.deltaY;
-//   });
-
-//   D.querySelector("div.file").ondrop = (e) => {
-//     e.preventDefault();
-
-//     const Files = D.querySelectorAll(".fileIcon");
-//     Files.forEach((el) => el.remove());
-//     document.querySelector("div.text").classList.remove("hide");
-
-//     let JSONFormat = GetFiles(e.dataTransfer.files);
-//     FilesList = JSONFormat;
-
-//     if (typeof JSONFormat === "object") {
-//       document.querySelector("div.text").classList.add("hide");
-
-//       JSONFormat.files.forEach((el) => {
-//         const File = D.createElement("div");
-//         const FileIcon = D.createElement("img");
-//         const FileName = D.createElement("span");
-
-//         File.className = "fileIcon";
-//         FileName.className = "spanImage";
-//         FileName.innerText = el.fileName;
-
-//         FileIcon.src = el.iconExt;
-//         FileIcon.className = "iconExt";
-
-//         File.appendChild(FileIcon);
-//         File.appendChild(FileName);
-//         D.querySelector("div.file").appendChild(File);
-//       });
-//     } else {
-//     }
-//   };
-// });
-
-
