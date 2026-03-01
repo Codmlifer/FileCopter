@@ -9,3 +9,5 @@ server/.vs
 .vscode
 .qodo
 .cursor
+server/Logs
+client/Logs

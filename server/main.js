@@ -90,6 +90,10 @@ io.on("connection", (socket) => {
     })
   })
 
+  socket.on("file-start", FObject => {
+    //send event for create dir
+  })
+
   socket.on("file-chunk", data => {
     if (CheckHashKey(data.key)) {
       console.log(data.chunk)
