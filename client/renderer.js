@@ -121,6 +121,10 @@ FoundServer((StringForConnect) => {
     ToggleElements([ ButtonGetFile, ButtonSendFile ], "no-active");
   });
 
+  socket.on("create-dir-on-client", (data) => {
+    const dir = fs.mkdirSync(data.dirName);
+  });
+
   let TempDir = null;
   ButtonSendFile.onclick = () => {
 
@@ -132,9 +136,13 @@ FoundServer((StringForConnect) => {
 
       if (el.isDir) {
         // Send directory name to server for create on client
-        socket.emit("file-start", {
-          fileName: el.fileName
-        });
+        // socket.emit("file-start", {
+        //   fileName: el.fileName
+        // });
+
+        socket.emit("create-dir", {
+          dirName: el.fileName
+        })
       }
       
       stream.on("data", (chunk) => {
